@@ -6,16 +6,27 @@ import {
   Post,
   Patch,
   Render,
+  Delete,
+  Redirect,
+  Req,
 } from '@nestjs/common';
 import { BooksService } from './books.service';
 import { BookDto } from './dto/book.dto';
+import { Book } from './schemas/book.schema';
 
 @Controller('api/books')
 export class BooksController {
   constructor(private readonly booksService: BooksService) {}
 
+  // add book/books
+
+  @Post()
+  async create(@Body() dto: BookDto): Promise<Book> {
+    return this.booksService.createBook(dto);
+  }
+
   @Get()
-  async getBooks() {
+  async getBooks(): Promise<Book[]> {
     try {
       return await this.booksService.getBooks();
     } catch (e) {
@@ -34,14 +45,8 @@ export class BooksController {
     }
   }
 
-  @Post()
-  async create(@Body() dto: BookDto) {
-    console.log('dto', dto);
-    return this.booksService.createBook(dto);
-  }
-
   @Get(':id')
-  async get(@Param('id') id: string) {
+  async get(@Param('id') id: string): Promise<Book> {
     try {
       return await this.booksService.getBook(id);
     } catch (e) {
@@ -60,10 +65,46 @@ export class BooksController {
     }
   }
 
+  // update book
+
   @Patch(':id')
   async patch(@Param('id') id: string, @Body() dto: BookDto) {
     try {
       return await this.booksService.updateBook(id, dto);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  @Get('/edit/:id')
+  @Render('editBook')
+  async editBook(@Param('id') id: string) {
+    try {
+      const data = await this.booksService.getBook(id);
+      return { title: data.title, book: data };
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  @Post('/edit/:id')
+  @Redirect('/api/books/view', 301)
+  async updateBook(@Param('id') id: string, @Body() dto: BookDto) {
+    try {
+      return await this.booksService.updateBook(id, dto);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  // delete book
+
+  @Get(':id/delete')
+  @Delete(':id')
+  @Redirect('/api/books/view', 301)
+  async delete(@Param('id') id: string): Promise<Book> {
+    try {
+      return await this.booksService.deleteBook(id);
     } catch (e) {
       console.log(e);
     }
