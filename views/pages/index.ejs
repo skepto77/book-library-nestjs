@@ -23,13 +23,19 @@
           >
           <br />
           <br />
-          <!-- <a href="/books/edit/<%= item._id %>" class="btn btn-primary btn-light">
+          <a
+            href="/api/books/edit/<%= item._id %>"
+            class="btn btn-primary btn-light"
+          >
             <i class="bi bi-pencil"></i>
           </a>
-          <a href="books/<%= item._id %>/delete" class="btn btn-primary btn-light">
+          <a
+            href="/api/books/<%= item._id %>/delete"
+            class="btn btn-primary btn-light"
+          >
             <i class="bi bi-trash"></i>
           </a>
-          <a href="api/books/<%= item._id %>/download" class="btn btn-primary btn-light">Скачать</a> -->
+          <!-- <a href="api/books/<%= item._id %>/download" class="btn btn-primary btn-light">Скачать</a> -->
         </div>
       </div>
       <% }); %> <% }else { %>
