@@ -6,7 +6,7 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  @Redirect('http://localhost:3000/api/books/view', 301)
+  @Redirect('/api/books/view', 301)
   getDocs() {
     console.log('hello');
   }
