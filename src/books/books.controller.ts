@@ -1,8 +1,16 @@
-import { Body, Controller, Get, Param, Post, Patch } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Patch,
+  Render,
+} from '@nestjs/common';
 import { BooksService } from './books.service';
 import { BookDto } from './dto/book.dto';
 
-@Controller('books')
+@Controller('api/books')
 export class BooksController {
   constructor(private readonly booksService: BooksService) {}
 
@@ -10,6 +18,17 @@ export class BooksController {
   async getBooks() {
     try {
       return await this.booksService.getBooks();
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  @Get('view')
+  @Render('index')
+  async viewBooks() {
+    try {
+      const books = await this.booksService.getBooks();
+      return { title: 'Книги', books: books };
     } catch (e) {
       console.log(e);
     }
@@ -25,6 +44,17 @@ export class BooksController {
   async get(@Param('id') id: string) {
     try {
       return await this.booksService.getBook(id);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  @Get('view/:id')
+  @Render('details')
+  async viewBook(@Param('id') id: string) {
+    try {
+      const data = await this.booksService.getBook(id);
+      return { title: data.title, book: data, count: 0 };
     } catch (e) {
       console.log(e);
     }
