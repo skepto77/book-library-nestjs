@@ -8,19 +8,19 @@ export class Book {
   @Prop({ required: true })
   title: string;
 
-  @Prop({ default: '' })
+  @Prop()
   description: string;
 
-  @Prop({ default: '' })
+  @Prop()
   authors: string;
 
-  @Prop({ default: '' })
+  @Prop()
   favorite: string;
 
-  @Prop({ default: '' })
+  @Prop()
   fileCover: string;
 
-  @Prop({ default: '' })
+  @Prop()
   fileName: string;
 }
 

@@ -8,105 +8,111 @@ import {
   Render,
   Delete,
   Redirect,
-  Req,
+  UsePipes,
+  ValidationPipe,
+  HttpException,
+  HttpStatus,
+  UseInterceptors,
 } from '@nestjs/common';
 import { BooksService } from './books.service';
 import { BookDto } from './dto/book.dto';
 import { Book } from './schemas/book.schema';
-
+import { BOOK_CREATE_ERROR, BOOK_NOT_FOUND_ERROR } from './product.constants';
+import { LoggingInterceptor } from 'src/common/interceptors/logging.interceptor';
+import { IdValidationPipe } from 'src/common/pipes/id-validation.pipe';
 @Controller('api/books')
 export class BooksController {
   constructor(private readonly booksService: BooksService) {}
 
-  // add book/books
-
+  // add book
+  @UseInterceptors(LoggingInterceptor)
+  @UsePipes(new ValidationPipe())
   @Post()
   async create(@Body() dto: BookDto): Promise<Book> {
-    return this.booksService.createBook(dto);
+    const book = this.booksService.createBook(dto);
+    if (!book) {
+      throw new HttpException(
+        { status: HttpStatus.BAD_REQUEST, error: BOOK_CREATE_ERROR },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return book;
   }
 
+  // get/view book/books
   @Get()
+  @UseInterceptors(LoggingInterceptor)
   async getBooks(): Promise<Book[]> {
-    try {
-      return await this.booksService.getBooks();
-    } catch (e) {
-      console.log(e);
-    }
+    return await this.booksService.getBooks();
   }
 
   @Get('view')
   @Render('index')
   async viewBooks() {
-    try {
-      const books = await this.booksService.getBooks();
-      return { title: 'Книги', books: books };
-    } catch (e) {
-      console.log(e);
-    }
+    const books = await this.booksService.getBooks();
+    return { title: 'Книги', books: books };
   }
 
   @Get(':id')
-  async get(@Param('id') id: string): Promise<Book> {
-    try {
-      return await this.booksService.getBook(id);
-    } catch (e) {
-      console.log(e);
+  @UseInterceptors(LoggingInterceptor)
+  async get(@Param('id', IdValidationPipe) id: string): Promise<Book> {
+    const book = await this.booksService.getBook(id);
+    if (!book) {
+      throw new HttpException(BOOK_NOT_FOUND_ERROR, HttpStatus.NOT_FOUND);
     }
+    return book;
   }
 
   @Get('view/:id')
   @Render('details')
-  async viewBook(@Param('id') id: string) {
-    try {
-      const data = await this.booksService.getBook(id);
-      return { title: data.title, book: data, count: 0 };
-    } catch (e) {
-      console.log(e);
+  async viewBook(@Param('id', IdValidationPipe) id: string) {
+    const book = await this.booksService.getBook(id);
+    if (!book) {
+      throw new HttpException(BOOK_NOT_FOUND_ERROR, HttpStatus.NOT_FOUND);
     }
+    return { title: book.title, book, count: 0 };
   }
 
   // update book
-
   @Patch(':id')
+  @UsePipes(new ValidationPipe())
   async patch(@Param('id') id: string, @Body() dto: BookDto) {
-    try {
-      return await this.booksService.updateBook(id, dto);
-    } catch (e) {
-      console.log(e);
+    const updatedBook = await this.booksService.updateBook(id, dto);
+    if (!updatedBook) {
+      throw new HttpException(BOOK_NOT_FOUND_ERROR, HttpStatus.NOT_FOUND);
     }
+    return updatedBook;
   }
 
   @Get('/edit/:id')
   @Render('editBook')
   async editBook(@Param('id') id: string) {
-    try {
-      const data = await this.booksService.getBook(id);
-      return { title: data.title, book: data };
-    } catch (e) {
-      console.log(e);
+    const book = await this.booksService.getBook(id);
+    if (!book) {
+      throw new HttpException(BOOK_NOT_FOUND_ERROR, HttpStatus.NOT_FOUND);
     }
+    return { title: book.title, book };
   }
 
   @Post('/edit/:id')
   @Redirect('/api/books/view', 301)
   async updateBook(@Param('id') id: string, @Body() dto: BookDto) {
-    try {
-      return await this.booksService.updateBook(id, dto);
-    } catch (e) {
-      console.log(e);
+    const updatedBook = await this.booksService.updateBook(id, dto);
+    if (!updatedBook) {
+      throw new HttpException(BOOK_NOT_FOUND_ERROR, HttpStatus.NOT_FOUND);
     }
+    return updatedBook;
   }
 
   // delete book
-
   @Get(':id/delete')
   @Delete(':id')
   @Redirect('/api/books/view', 301)
   async delete(@Param('id') id: string): Promise<Book> {
-    try {
-      return await this.booksService.deleteBook(id);
-    } catch (e) {
-      console.log(e);
+    const deletedBook = await this.booksService.deleteBook(id);
+    if (!deletedBook) {
+      throw new HttpException(BOOK_NOT_FOUND_ERROR, HttpStatus.NOT_FOUND);
     }
+    return deletedBook;
   }
 }

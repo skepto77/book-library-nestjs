@@ -1,12 +1,28 @@
-import { Schema } from 'mongoose';
-
+import { IsString, IsOptional } from 'class-validator';
 export class BookDto {
-  _id: Schema.Types.ObjectId;
+  @IsString()
   title: string;
-  description?: string;
+
+  @IsString()
+  description: string;
+
+  @IsOptional()
+  @IsString()
   authors?: string;
+
+  @IsOptional()
+  @IsString()
   favorite?: string;
+
+  @IsOptional()
+  @IsString()
   fileCover?: string;
+
+  @IsOptional()
+  @IsString()
   fileName?: string;
+
+  @IsOptional()
+  @IsString()
   fileBook?: string;
 }

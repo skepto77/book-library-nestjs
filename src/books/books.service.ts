@@ -9,40 +9,23 @@ export class BooksService {
   constructor(@InjectModel(Book.name) private bookModel: Model<BookDocument>) {}
 
   async createBook(dto: BookDto): Promise<Book> {
-    try {
-      const createdBook = new this.bookModel(dto);
-      return createdBook.save();
-    } catch (e) {
-      console.log(e);
-    }
+    const book = new this.bookModel(dto);
+    Object.assign(book, dto);
+    return this.bookModel.create(book);
   }
 
   async getBook(id: string): Promise<Book> {
-    try {
-      return await this.bookModel.findById(id).select('-__v');
-    } catch (e) {
-      console.log(e);
-    }
+    return await this.bookModel.findById(id).select('-__v').exec();
   }
 
   async getBooks(): Promise<Array<Book>> {
-    try {
-      return await this.bookModel.find().select('-__v').exec();
-    } catch (e) {
-      console.log(e);
-    }
+    return await this.bookModel.find().select('-__v').exec();
   }
 
   async updateBook(id: string, dto: BookDto): Promise<Book | string> {
-    try {
-      console.log(id, dto);
-      return await this.bookModel
-        .findByIdAndUpdate(id, dto, { new: true })
-        .exec();
-    } catch (e) {
-      console.error(e);
-      return `Ошибка обновления книги`;
-    }
+    return await this.bookModel
+      .findByIdAndUpdate(id, dto, { new: true })
+      .exec();
   }
 
   async deleteBook(id: string): Promise<Book> {
