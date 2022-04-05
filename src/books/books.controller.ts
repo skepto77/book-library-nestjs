@@ -107,10 +107,19 @@ export class BooksController {
 
   // delete book
   @UseGuards(JwtAuthGuard)
-  @Get(':id/delete')
   @Delete(':id')
-  @Redirect('/api/books/view', 301)
   async delete(@Param('id', IdValidationPipe) id: string): Promise<Book> {
+    const deletedBook = await this.booksService.deleteBook(id);
+    if (!deletedBook) {
+      throw new HttpException(BOOK_NOT_FOUND_ERROR, HttpStatus.NOT_FOUND);
+    }
+    return deletedBook;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/delete')
+  @Redirect('/api/books/view', 301)
+  async deleteBook(@Param('id', IdValidationPipe) id: string): Promise<Book> {
     const deletedBook = await this.booksService.deleteBook(id);
     if (!deletedBook) {
       throw new HttpException(BOOK_NOT_FOUND_ERROR, HttpStatus.NOT_FOUND);
