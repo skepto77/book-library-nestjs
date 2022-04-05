@@ -13,13 +13,15 @@ import {
   HttpException,
   HttpStatus,
   UseInterceptors,
+  UseGuards,
 } from '@nestjs/common';
 import { BooksService } from './books.service';
 import { BookDto } from './dto/book.dto';
 import { Book } from './schemas/book.schema';
-import { BOOK_CREATE_ERROR, BOOK_NOT_FOUND_ERROR } from './product.constants';
+import { BOOK_CREATE_ERROR, BOOK_NOT_FOUND_ERROR } from './book.constants';
 import { LoggingInterceptor } from 'src/common/interceptors/logging.interceptor';
 import { IdValidationPipe } from 'src/common/pipes/id-validation.pipe';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 @Controller('api/books')
 export class BooksController {
   constructor(private readonly booksService: BooksService) {}
@@ -31,17 +33,13 @@ export class BooksController {
   async create(@Body() dto: BookDto): Promise<Book> {
     const book = this.booksService.createBook(dto);
     if (!book) {
-      throw new HttpException(
-        { status: HttpStatus.BAD_REQUEST, error: BOOK_CREATE_ERROR },
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new HttpException(BOOK_CREATE_ERROR, HttpStatus.BAD_REQUEST);
     }
     return book;
   }
 
   // get/view book/books
   @Get()
-  @UseInterceptors(LoggingInterceptor)
   async getBooks(): Promise<Book[]> {
     return await this.booksService.getBooks();
   }
@@ -76,7 +74,7 @@ export class BooksController {
   // update book
   @Patch(':id')
   @UsePipes(new ValidationPipe())
-  async patch(@Param('id') id: string, @Body() dto: BookDto) {
+  async patch(@Param('id', IdValidationPipe) id: string, @Body() dto: BookDto) {
     const updatedBook = await this.booksService.updateBook(id, dto);
     if (!updatedBook) {
       throw new HttpException(BOOK_NOT_FOUND_ERROR, HttpStatus.NOT_FOUND);
@@ -86,7 +84,7 @@ export class BooksController {
 
   @Get('/edit/:id')
   @Render('editBook')
-  async editBook(@Param('id') id: string) {
+  async editBook(@Param('id', IdValidationPipe) id: string) {
     const book = await this.booksService.getBook(id);
     if (!book) {
       throw new HttpException(BOOK_NOT_FOUND_ERROR, HttpStatus.NOT_FOUND);
@@ -96,7 +94,10 @@ export class BooksController {
 
   @Post('/edit/:id')
   @Redirect('/api/books/view', 301)
-  async updateBook(@Param('id') id: string, @Body() dto: BookDto) {
+  async updateBook(
+    @Param('id', IdValidationPipe) id: string,
+    @Body() dto: BookDto,
+  ) {
     const updatedBook = await this.booksService.updateBook(id, dto);
     if (!updatedBook) {
       throw new HttpException(BOOK_NOT_FOUND_ERROR, HttpStatus.NOT_FOUND);
@@ -105,10 +106,11 @@ export class BooksController {
   }
 
   // delete book
+  @UseGuards(JwtAuthGuard)
   @Get(':id/delete')
   @Delete(':id')
   @Redirect('/api/books/view', 301)
-  async delete(@Param('id') id: string): Promise<Book> {
+  async delete(@Param('id', IdValidationPipe) id: string): Promise<Book> {
     const deletedBook = await this.booksService.deleteBook(id);
     if (!deletedBook) {
       throw new HttpException(BOOK_NOT_FOUND_ERROR, HttpStatus.NOT_FOUND);
