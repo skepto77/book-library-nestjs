@@ -14,14 +14,15 @@ import {
   HttpStatus,
   UseInterceptors,
   UseGuards,
+  HttpCode,
 } from '@nestjs/common';
 import { BooksService } from './books.service';
 import { BookDto } from './dto/book.dto';
 import { Book } from './schemas/book.schema';
 import { BOOK_CREATE_ERROR, BOOK_NOT_FOUND_ERROR } from './book.constants';
-import { LoggingInterceptor } from 'src/common/interceptors/logging.interceptor';
-import { IdValidationPipe } from 'src/common/pipes/id-validation.pipe';
-import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { LoggingInterceptor } from '../common/interceptors/logging.interceptor';
+import { IdValidationPipe } from '../common/pipes/id-validation.pipe';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 @Controller('api/books')
 export class BooksController {
   constructor(private readonly booksService: BooksService) {}
@@ -30,6 +31,7 @@ export class BooksController {
   @UseInterceptors(LoggingInterceptor)
   @UsePipes(new ValidationPipe())
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   async create(@Body() dto: BookDto): Promise<Book> {
     const book = this.booksService.createBook(dto);
     if (!book) {
@@ -40,6 +42,7 @@ export class BooksController {
 
   // get/view book/books
   @Get()
+  @HttpCode(HttpStatus.OK)
   async getBooks(): Promise<Book[]> {
     return await this.booksService.getBooks();
   }
@@ -53,6 +56,7 @@ export class BooksController {
 
   @Get(':id')
   @UseInterceptors(LoggingInterceptor)
+  @HttpCode(HttpStatus.OK)
   async get(@Param('id', IdValidationPipe) id: string): Promise<Book> {
     const book = await this.booksService.getBook(id);
     if (!book) {
@@ -74,6 +78,7 @@ export class BooksController {
   // update book
   @Patch(':id')
   @UsePipes(new ValidationPipe())
+  @HttpCode(HttpStatus.OK)
   async patch(@Param('id', IdValidationPipe) id: string, @Body() dto: BookDto) {
     const updatedBook = await this.booksService.updateBook(id, dto);
     if (!updatedBook) {
@@ -108,6 +113,7 @@ export class BooksController {
   // delete book
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
+  @HttpCode(HttpStatus.OK)
   async delete(@Param('id', IdValidationPipe) id: string): Promise<Book> {
     const deletedBook = await this.booksService.deleteBook(id);
     if (!deletedBook) {

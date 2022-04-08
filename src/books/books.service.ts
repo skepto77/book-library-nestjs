@@ -9,17 +9,15 @@ export class BooksService {
   constructor(@InjectModel(Book.name) private bookModel: Model<BookDocument>) {}
 
   async createBook(dto: BookDto): Promise<Book> {
-    const book = new this.bookModel(dto);
-    Object.assign(book, dto);
-    return this.bookModel.create(book);
+    return await this.bookModel.create(dto);
   }
 
   async getBook(id: string): Promise<Book> {
-    return await this.bookModel.findById(id).select('-__v').exec();
+    return await this.bookModel.findById(id).exec();
   }
 
   async getBooks(): Promise<Array<Book>> {
-    return await this.bookModel.find().select('-__v').exec();
+    return await this.bookModel.find().exec();
   }
 
   async updateBook(id: string, dto: BookDto): Promise<Book | string> {
