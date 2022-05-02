@@ -12,9 +12,10 @@
         ID: <%= (locals.user) ? locals.user.id : 'none' %>
         <br />
         Имя пользователя: <%= (locals.user)? locals.user.username : 'none' %>
+        <%= (user)? user.email : 'none' %>
         <br />
       </p>
-      <a href="/user/logout">Выйти</a>
+      <a href="/">Выйти</a>
     </div>
   </div>
 </div>

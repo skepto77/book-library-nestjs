@@ -28,61 +28,57 @@
     </div>
   </div>
   <div class="row d-flex justify-content-center mt-4">
-    <div class="col-4">
+    <div class="col-6">
+      <ul id="list"></ul>
       <div class="form-group mt-2">
-        <label for="username">
-          Имя пользователя: <% if(locals.user) { %> <%= locals.user.username%> <% } else { %>
-          <a href="/user/login">please login</a>
-          <% } %>
-        </label>
-        <input
-          placeholder="username"
-          type="text"
-          id="username"
+        <label for="text">сообщение</label>
+        <textarea
+          placeholder="Введите сообщение"
           class="form-control"
-          value="<%= locals.user ? locals.user.username : ''  %>"
-        />
+          id="text"
+        ></textarea>
       </div>
-      <div class="form-group mt-2">
-        <label for="text">message</label>
-        <textarea placeholder="message" class="form-control" id="text"></textarea>
-      </div>
-      <button type="submit" id="send-room" class="btn btn-primary mt-2">отправить</button>
+      <button type="submit" id="send" class="btn btn-primary mt-2">
+        отправить
+      </button>
     </div>
   </div>
 </div>
 
 <script>
-  const roomName = location.pathname.split('/').pop();
-  const socket = io.connect('/', { query: `roomName=${roomName}` });
-  const boxList = document.querySelector('#list');
-  const inputUsername = document.querySelector('#username');
+  // const socket = io.connect('http://localhost:3000');
+  const socket = io.connect('/');
+  const bookId = location.pathname.split('/').pop();
   const inputText = document.querySelector('#text');
-  const sendRoom = document.querySelector('#send-room');
-
+  const btn = document.querySelector('#send');
+  const boxList = document.querySelector('#list');
   const getTmp = (msg) => {
     return `
-              <div class="list-group-item list-group-item-action">
-                  <div class="d-flex w-100 justify-content-between">
-                      <small>${msg.username}</small>
-                      <small class="text-muted">${msg.type}</small>
-                  </div>
-                  <p class="mb-1">${msg.text}</p>
-              </div>
+              <li class="list-group-item">
+                  ${msg}
+              </li>
       `;
   };
 
-  socket.on('message-to-room', (msg) => {
-    const div = getTmp(msg);
+  socket.emit('toServerGetAllComments', {
+    id: bookId,
+  });
+
+  socket.on('toClient', (msg) => {
+    console.log('toClient msg', msg);
+    // const div = getTmp(msg);
+    const div = Array.isArray(msg)
+      ? msg.map((item) => getTmp(item)).join('')
+      : getTmp(msg);
     boxList.insertAdjacentHTML('beforeend', div);
   });
 
-  sendRoom.addEventListener('click', () => {
-    socket.emit('message-to-room', {
-      username: inputUsername.value,
-      text: inputText.value,
+  btn.addEventListener('click', () => {
+    console.log('inputText.value', inputText.value);
+    socket.emit('toServerAddComment', {
+      bookId,
+      comment: inputText.value,
     });
-    console.log(username);
   });
 </script>
 
